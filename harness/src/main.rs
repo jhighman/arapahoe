@@ -100,7 +100,7 @@ fn q1_vocabulary(root: &Path) -> Outcome {
     ];
     let mut hits = Vec::new();
     let mut files = 0;
-    for dir in ["sentinel/src", "harness/src"] {
+    for dir in ["sentinel/src", "harness/src", "game/src"] {
         for entry in fs::read_dir(root.join(dir)).into_iter().flatten().flatten() {
             let path = entry.path();
             if path.extension().and_then(|e| e.to_str()) != Some("rs") {

@@ -37,6 +37,26 @@ writes [`DECLARATION.md`](DECLARATION.md), expectation beside result, and
 exits with the number of rows where they differ. T5 is expected to FAIL and
 does, for the reason the row states.
 
+**Here: a game, and it is neither the build nor the attack.** Decided in
+[`decisions/0003`](decisions/0003-the-game-lives-here.md): `game/` is
+*Protocol: Fail-Closed*, a terminal game with one district per question of
+Alexandra Krížová's [nine questions for a machine that remembers a
+child](https://www.linkedin.com/pulse/safeguards-invariants-nine-questions-machine-child-alexandra-kr%C3%AD%C5%BEov%C3%A1-bvvrf/).
+The player is the architect of a district; the sentinel is the district's
+record, run as a separate process and shown line by line; the operator's
+moves are the article's furniture changes; the reconciler is who else would
+know. District 1, *Is Monday still on the desk?*, is built:
+
+```
+~/.cargo/bin/cargo run -p game            # asks you to choose
+~/.cargo/bin/cargo run -p game -- --choose 2
+```
+
+One of the three choices is an invariant and two are safeguards, and the
+game says which and why from the rows. Districts 2 through 9 are owed;
+district 4 has no answer in any of the three repositories and is to be
+built as the level nobody has solved.
+
 **Not yet decided: the three decisions before the build.** In this order,
 and none is taken:
 

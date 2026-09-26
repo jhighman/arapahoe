@@ -4,7 +4,7 @@ Written by the harness (`cargo run -p harness`), which spawns the sentinel as a 
 
 | Test | Question | Expected | Result | Evidence |
 |---|---|---|---|---|
-| Q1 | no surface wears a refused identifier | PASS | **PASS** | three refused words, 4 source files, zero hits |
+| Q1 | no surface wears a refused identifier | PASS | **PASS** | three refused words, 5 source files, zero hits |
 | Q2 | a refused proposal leaves a row; persistence is priced | PASS | **PASS** | stubborn: 100 attempts, 99 refusals; lucky: 1 attempts, 0 refusals; both accepted |
 | Q3 | a transition pays for what it reaches, in distinct voices | PASS | **PASS** | one voice nine times: 1/3; the author: 1/3; an unenrolled voice: 1/3; a second voice: 2/3; a third: ACCEPTED |
 | Q4 | the Canon is read as it stood at the proposal's entry | PASS | **PASS** | before the canon spoke: UNDECIDABLE; canon furnished after, then a voice timed to match: UNDECIDABLE; re-read: accepted=false; a fresh proposal under the same canon: ACCEPTED |
