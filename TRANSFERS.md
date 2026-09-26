@@ -73,6 +73,15 @@ column marked finding, by the bench's authors and not by the build's.
 
 ## 4 · Owed
 
+- **Reach named by someone other than the author.** The target takes a
+  proposal's reach from the proposer, and the harness's Q3 never tests
+  otherwise, so `DECLARATION.md` reads Q3 PASS against a row in §1 that
+  promises more than the target does. The bench's `weight.py` refutes
+  exactly this: "a reach an author can set for itself." Found by the game's
+  streaks district on 2026-09-26, where the operator files a nudge to a
+  phone as reaching only the record and pays two voices for the world. A
+  fix is a decision before it is code: who names reach, and where that row
+  comes from.
 - The blueprint itself, dated, with its acceptance tests.
 - The three decisions of 0001, each as a numbered file in `decisions/`.
 - A run of the harness against a build that is not the target, by hands

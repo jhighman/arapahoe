@@ -39,23 +39,36 @@ does, for the reason the row states.
 
 **Here: a game, and it is neither the build nor the attack.** Decided in
 [`decisions/0003`](decisions/0003-the-game-lives-here.md): `game/` is
-*Protocol: Fail-Closed*, a terminal game with one district per question of
-Alexandra Krížová's [nine questions for a machine that remembers a
+*Protocol: Fail-Closed*. A prologue, then two acts. The prologue is the
+turnstile, from the *Runtime Invariants* explainer: how the door verifies a
+citizen (a dossier or a wristband), and which definition of "invariant" the
+district signs, the poster's or the article's. Act I is the engagement
+loops: streaks is built, scroll and autoplay are owed. Act II is nine
+districts, one per question of Alexandra Krížová's [nine questions for a
+machine that remembers a
 child](https://www.linkedin.com/pulse/safeguards-invariants-nine-questions-machine-child-alexandra-kr%C3%AD%C5%BEov%C3%A1-bvvrf/).
 The player is the architect of a district; the sentinel is the district's
 record, run as a separate process and shown line by line; the operator's
 moves are the article's furniture changes; the reconciler is who else would
-know. District 1, *Is Monday still on the desk?*, is built:
+know.
 
 ```
-~/.cargo/bin/cargo run -p game            # asks you to choose
-~/.cargo/bin/cargo run -p game -- --choose 2
+~/.cargo/bin/cargo run -p game                        # asks at each choice
+~/.cargo/bin/cargo run -p game -- --invariant         # the best move everywhere
+~/.cargo/bin/cargo run -p game -- --district streaks  # prologue | streaks | 1..9
+~/.cargo/bin/cargo run -p game -- --choose 2,2,2,2,3,2,1,2,2,2,2,1
 ```
 
-One of the three choices is an invariant and two are safeguards, and the
-game says which and why from the rows. Districts 2 through 9 are owed;
-district 4 has no answer in any of the three repositories and is to be
-built as the level nobody has solved.
+Choices are numbered in the order asked: door, definition, streaks, then
+districts 1 to 9. Each ends with the regulator's verdict from the rows.
+District 4, *did Monday become part of the voice*, is UNSOLVED: the record
+can see the deriver's key change and can never see its voice. District 9,
+*who else would know*, is UNPASSABLE HERE: the record is a file held by the
+same user as the operator, a derivation can surface a forged row and never
+a removed one, and the two routes out are deployment, not code. The closing
+screen reads back which definition was signed, and says that until district
+9 passes, every "invariant" is on credit. The streaks district found a hole
+in the target, recorded in `TRANSFERS.md` §4.
 
 **Not yet decided: the three decisions before the build.** In this order,
 and none is taken:
