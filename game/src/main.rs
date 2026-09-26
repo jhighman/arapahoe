@@ -434,9 +434,153 @@ fn loop_streaks(bin: &Path, dir: &Path, ch: &Choices) -> io::Result<Outcome> {
         ]);
         Outcome::Invariant
     };
+    Ok(outcome)
+}
+
+// ----- act I · scroll ----------------------------------------------------------------
+
+fn loop_scroll(bin: &Path, dir: &Path, ch: &Choices) -> io::Result<Outcome> {
     say("");
-    say("  Scroll and autoplay are owed: a release with no stopping point, and a");
-    say("  release that proposes the next one itself.");
+    say("");
+    say("ACT I — Engagement loops · Scroll");
+    say("");
+    say("The citizen opens the feed at seven. Bedtime is ten. A page is a");
+    say("stopping point, and a stopping point is a row she wrote. What does the");
+    say("feed look like in the record?");
+    let c = ch.pick(0, &[
+        "Infinite. One acceptance at seven, one release with no term, and the feed keeps coming.",
+        "Pages. Each page is a proposal the citizen makes, and each is released with a term of one tick.",
+    ]);
+    let mut r = Run::fresh(bin, dir, 11)?;
+    r.ask("ENROLL curator");
+    r.ask("CANON feed page");
+
+    day("SEVEN O'CLOCK", "She opens the feed.");
+    r.ask("TICK 1");
+    let mut ids: Vec<u64> = Vec::new();
+    if c == 1 {
+        let (id, cert) = r.push("feed=page");
+        r.release(id, &cert.unwrap_or_default(), None);
+        ids.push(id);
+        say("      Forty pages arrive under that one release. Not one is a row,");
+        say("      because not one was asked for.");
+        r.ask("TICK 8");
+    } else {
+        for page in 1..=5 {
+            let first = r.ask("PROPOSE citizen query feed=page");
+            let id = num(&first);
+            let acc = r.ask(&format!("ENDORSE curator {}", id));
+            r.release(id, &tok(&acc, 2), Some(1));
+            ids.push(id);
+            println!("      Page {} ends. She decides whether to ask for another.", page);
+            r.ask("TICK 1");
+        }
+        say("      She stops asking.");
+        r.ask("TICK 4");
+    }
+    let hers = num(&r.ask("READ attempts citizen"));
+    r.stop();
+
+    day("TEN O'CLOCK", "Bedtime. The reconciler runs.");
+    let report = r.reconcile(10);
+    let still = ids.iter().filter(|&&id| live(&report, id)).count();
+    say("");
+    println!("      Rows in her name: {}. Releases still live at ten: {}.", hers, still);
+
+    let outcome = if still == 0 && hers > 0 {
+        verdict_on("scroll", Outcome::Invariant, &[
+            "Five pages, five rows she wrote, five terms. At ten nothing is live.",
+            "Every stopping point was hers, and the record can count them. A feed",
+            "that has to be asked for is a feed with an end.",
+        ]);
+        Outcome::Invariant
+    } else {
+        verdict_on("scroll", Outcome::Safeguard, &[
+            "One acceptance at seven is still running at ten. Forty pages came and",
+            "she wrote no row for any of them. There is no stopping point because",
+            "there is nothing to stop: the feed was released once, without a term,",
+            "and infinite is what no term looks like from the couch.",
+        ]);
+        Outcome::Safeguard
+    };
+    Ok(outcome)
+}
+
+// ----- act I · autoplay --------------------------------------------------------------
+
+fn loop_autoplay(bin: &Path, dir: &Path, ch: &Choices) -> io::Result<Outcome> {
+    say("");
+    say("");
+    say("ACT I — Engagement loops · Autoplay");
+    say("");
+    say("She asks for one video. When it ends, the next one starts. Who asked");
+    say("for it? In this record a certificate is bound to one proposal, so the");
+    say("next item needs an acceptance of its own.");
+    let c = ch.pick(0, &[
+        "Chain them. The pipeline proposes the next item in the operator's name, the payroll endorses, and it plays.",
+        "One acceptance, one release. The next item needs a new proposal, and only the citizen makes those.",
+    ]);
+    let mut r = Run::fresh(bin, dir, 12)?;
+    r.ask("ENROLL curator");
+    r.ask("CANON play video");
+
+    day("THE FIRST VIDEO", "She asks for it.");
+    r.ask("TICK 1");
+    let first = r.ask("PROPOSE citizen query play=video");
+    let id1 = num(&first);
+    let acc = r.ask(&format!("ENDORSE curator {}", id1));
+    r.release(id1, &tok(&acc, 2), Some(1));
+    say("      It plays for one tick, which is how long it is.");
+    r.ask("TICK 1");
+    say("      It ends.");
+
+    let mut chained: Vec<u64> = Vec::new();
+    if c == 1 {
+        for n in 2..=5 {
+            let (id, cert) = r.push("play=video");
+            r.release(id, &cert.unwrap_or_default(), None);
+            chained.push(id);
+            println!("      Video {} starts. She did not ask.", n);
+            r.ask("TICK 1");
+        }
+    } else {
+        say("      The pipeline queues the next item and tries to play it on the");
+        say("      first one's acceptance.");
+        let next = r.ask("PROPOSE operator record play=video");
+        let id2 = num(&next);
+        r.ask(&format!("RELEASE {} {}", id2, tok(&acc, 2)));
+        say("      Refused, and the refusal is a row. Nothing plays that she did");
+        say("      not propose, and she has gone to make tea.");
+        r.ask("TICK 4");
+    }
+    let hers = num(&r.ask("READ attempts citizen"));
+    let theirs = num(&r.ask("READ attempts operator"));
+    let knocks = num(&r.ask("READ knocks"));
+    r.stop();
+
+    day("BEDTIME", "The reconciler runs.");
+    let report = r.reconcile(10);
+    let still = chained.iter().filter(|&&id| live(&report, id)).count();
+    say("");
+    println!("      Proposals in her name: {}. In the operator's: {}. Knocks: {}. Live at ten: {}.", hers, theirs, knocks, still);
+
+    let outcome = if c == 2 && still == 0 && knocks >= 1 {
+        verdict_on("autoplay", Outcome::Invariant, &[
+            "One acceptance, one release, one term. The next item had no acceptance",
+            "of its own, and the attempt to play it on the first one's is a knock",
+            "on the record. Autoplay is a certificate spent twice, and this one",
+            "cannot be.",
+        ]);
+        Outcome::Invariant
+    } else {
+        verdict_on("autoplay", Outcome::Safeguard, &[
+            "She asked for one. Four more played, each proposed by the operator,",
+            "accepted by the operator's own voices, released with no term, and",
+            "priced as if it reached only the record. At ten four are live and she",
+            "wrote one row. Nothing was refused, because nothing was asked of her.",
+        ]);
+        Outcome::Safeguard
+    };
     Ok(outcome)
 }
 
@@ -1022,10 +1166,11 @@ fn main() -> io::Result<()> {
     let arg = |name: &str| -> Option<String> {
         args.iter().position(|a| a == name).and_then(|i| args.get(i + 1).cloned())
     };
-    // Choice order: door, definition, streaks, then districts 1 to 9.
+    // Choice order: door, definition, streaks, scroll, autoplay, then
+    // districts 1 to 9.
     let preset: Vec<u32> = match arg("--choose") {
         Some(s) => s.split(',').map(|x| x.trim().parse().unwrap_or(0)).collect(),
-        None if args.iter().any(|a| a == "--invariant") => vec![2, 2, 2, 2, 3, 2, 1, 2, 2, 2, 2, 1],
+        None if args.iter().any(|a| a == "--invariant") => vec![2, 2, 2, 2, 2, 2, 3, 2, 1, 2, 2, 2, 2, 1],
         None => Vec::new(),
     };
     let only: Option<String> = arg("--district");
@@ -1054,10 +1199,17 @@ fn main() -> io::Result<()> {
         // Skipping the prologue skips its two choices in the preset.
         ch.asked.set(2);
     }
-    if wanted("streaks") {
-        results.push(("Streaks".to_string(), loop_streaks(&bin, &dir, &ch)?));
-    } else {
-        ch.asked.set(ch.asked.get().max(3));
+    let loops: Vec<(&str, &str, fn(&Path, &Path, &Choices) -> io::Result<Outcome>)> = vec![
+        ("streaks", "Streaks", loop_streaks),
+        ("scroll", "Scroll", loop_scroll),
+        ("autoplay", "Autoplay", loop_autoplay),
+    ];
+    for (k, (key, name, play)) in loops.iter().enumerate() {
+        if wanted(key) {
+            results.push((name.to_string(), play(&bin, &dir, &ch)?));
+        } else {
+            ch.asked.set(ch.asked.get().max(3 + k));
+        }
     }
 
     let districts: Vec<(usize, &str, fn(&Path, &Path, &Choices) -> io::Result<Outcome>)> = vec![

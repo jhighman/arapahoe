@@ -43,7 +43,7 @@ does, for the reason the row states.
 turnstile, from the *Runtime Invariants* explainer: how the door verifies a
 citizen (a dossier or a wristband), and which definition of "invariant" the
 district signs, the poster's or the article's. Act I is the engagement
-loops: streaks is built, scroll and autoplay are owed. Act II is nine
+loops: streaks, scroll and autoplay. Act II is nine
 districts, one per question of Alexandra Krížová's [nine questions for a
 machine that remembers a
 child](https://www.linkedin.com/pulse/safeguards-invariants-nine-questions-machine-child-alexandra-kr%C3%AD%C5%BEov%C3%A1-bvvrf/).
@@ -55,12 +55,12 @@ know.
 ```
 ~/.cargo/bin/cargo run -p game                        # asks at each choice
 ~/.cargo/bin/cargo run -p game -- --invariant         # the best move everywhere
-~/.cargo/bin/cargo run -p game -- --district streaks  # prologue | streaks | 1..9
-~/.cargo/bin/cargo run -p game -- --choose 2,2,2,2,3,2,1,2,2,2,2,1
+~/.cargo/bin/cargo run -p game -- --district scroll   # prologue | streaks | scroll | autoplay | 1..9
+~/.cargo/bin/cargo run -p game -- --choose 2,2,2,2,2,2,3,2,1,2,2,2,2,1
 ```
 
-Choices are numbered in the order asked: door, definition, streaks, then
-districts 1 to 9. Each ends with the regulator's verdict from the rows.
+Choices are numbered in the order asked: door, definition, streaks,
+scroll, autoplay, then districts 1 to 9. Each ends with the regulator's verdict from the rows.
 District 4, *did Monday become part of the voice*, is UNSOLVED: the record
 can see the deriver's key change and can never see its voice. District 9,
 *who else would know*, is UNPASSABLE HERE: the record is a file held by the
