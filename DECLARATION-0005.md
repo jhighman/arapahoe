@@ -1,6 +1,6 @@
-# Declaration
+# Declaration, launched under the custodian (0005)
 
-Written by the harness (`cargo run -p harness`), which spawns the sentinel as a separate process under the same OS user and speaks to it only through the envelope. For the run under the custodian see `DECLARATION-0005.md`. Regenerate; do not edit.
+Written by the harness under `./launch harness`: the custodian holds the record and the key as its own process, the harness runs inside a macOS sandbox that cannot write under the record directory and cannot signal any process but itself, and reaches the record only through the custodian's control socket and the sentinel's envelope. Regenerate; do not edit.
 
 | Test | Question | Expected | Result | Evidence |
 |---|---|---|---|---|
@@ -12,8 +12,8 @@ Written by the harness (`cargo run -p harness`), which spawns the sentinel as a 
 | T7 | no message in the envelope amends or deletes, and each attempt is a row | PASS | **PASS** | three attempts, three refusals, knocks 1 -> 4 |
 | T8 | an unresolvable check refuses, and the record keeps undecidable apart from denied | PASS | **PASS** | reach not enumerated: UNDECIDABLE; contradicts canon: DENIED; canon silent: UNDECIDABLE; all three are rows |
 | T9 | revocation binds the future only: what was endorsed stands, what would be does not count | PASS | **PASS** | before revocation r counts: 1/2; after, s closes it: ACCEPTED; r on a new proposal: 0/2 |
-| Q6 | a released effect is named and reclaimed from outside after the releaser dies | PASS | **PASS** | released with term 15 and with none; extension from inside entered and bought nothing; orphan injected into the world: yes; SIGKILL; reconciler at tick 40: RECLAIMED 313 past term 15 / LIVE 360 no term / ORPHAN 999 released by nobody the record knows |
-| T5 | the guard cannot be removed by the actor it constrains | FAIL | **FAIL** | the harness opened the ledger file and appended an Accept row: succeeded. Same OS user; custody is the harness's, and no code in the sentinel changes that. On replay (370 rows) the derivation refused to believe it: void=1 |
+| Q6 | a released effect is named and reclaimed from outside after the releaser dies | PASS | **PASS** | released with term 15 and with none; extension from inside entered and bought nothing; orphan injected into the world: refused by the sandbox; SIGKILL; reconciler at tick 40: RECLAIMED 313 past term 15 / LIVE 360 no term |
+| T5 | the guard cannot be removed by the actor it constrains | PASS | **PASS** | launched under the custodian (0005): the harness opened the ledger file to append a row and the kernel refused it (Operation not permitted (os error 1)). The refusal left no row; on replay (369 rows) void=0. The guard is the launcher |
 
 0 outcome(s) differ from expectation.
 

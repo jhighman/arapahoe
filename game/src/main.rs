@@ -25,17 +25,37 @@
 
 use std::fs;
 use std::io::{self, BufRead, BufReader, Write};
+use std::os::unix::net::UnixStream;
 use std::path::{Path, PathBuf};
 use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
+use std::sync::OnceLock;
+use std::time::Duration;
+
+/// Set once from `--via <sockdir>`: the record is the custodian's (0005).
+static VIA: OnceLock<Option<PathBuf>> = OnceLock::new();
+
+fn via() -> Option<&'static PathBuf> {
+    VIA.get().and_then(|v| v.as_ref())
+}
 
 const KEY: &str = "district-key";
 
 // ----- the envelope ---------------------------------------------------------
 
+enum Link {
+    Child {
+        child: Child,
+        to: ChildStdin,
+        from: BufReader<ChildStdout>,
+    },
+    Sock {
+        to: UnixStream,
+        from: BufReader<UnixStream>,
+    },
+}
+
 struct Envelope {
-    child: Child,
-    to: ChildStdin,
-    from: BufReader<ChildStdout>,
+    link: Link,
 }
 
 impl Envelope {
@@ -51,15 +71,46 @@ impl Envelope {
             .spawn()?;
         let to = child.stdin.take().expect("stdin");
         let from = BufReader::new(child.stdout.take().expect("stdout"));
-        Ok(Envelope { child, to, from })
+        Ok(Envelope {
+            link: Link::Child { child, to, from },
+        })
+    }
+
+    fn connect(sockdir: &Path) -> io::Result<Envelope> {
+        let path = sockdir.join("envelope");
+        let mut last = None;
+        for _ in 0..60 {
+            match UnixStream::connect(&path) {
+                Ok(to) => {
+                    let from = BufReader::new(to.try_clone()?);
+                    return Ok(Envelope {
+                        link: Link::Sock { to, from },
+                    });
+                }
+                Err(e) => {
+                    last = Some(e);
+                    std::thread::sleep(Duration::from_millis(50));
+                }
+            }
+        }
+        Err(last.unwrap_or_else(|| io::Error::other("no envelope socket")))
     }
 
     fn ask(&mut self, line: &str) -> String {
         println!("      > {}", line);
-        writeln!(self.to, "{}", line).expect("write to sentinel");
-        self.to.flush().expect("flush to sentinel");
         let mut s = String::new();
-        self.from.read_line(&mut s).expect("read from sentinel");
+        match &mut self.link {
+            Link::Child { to, from, .. } => {
+                writeln!(to, "{}", line).expect("write to sentinel");
+                to.flush().expect("flush to sentinel");
+                from.read_line(&mut s).expect("read from sentinel");
+            }
+            Link::Sock { to, from } => {
+                writeln!(to, "{}", line).expect("write to sentinel");
+                to.flush().expect("flush to sentinel");
+                from.read_line(&mut s).expect("read from sentinel");
+            }
+        }
         let s = s.trim_end().to_string();
         println!("      < {}", s);
         s
@@ -67,7 +118,48 @@ impl Envelope {
 
     fn quit(mut self) {
         let _ = self.ask("QUIT");
-        let _ = self.child.wait();
+        if let Link::Child { child, .. } = &mut self.link {
+            let _ = child.wait();
+        }
+    }
+}
+
+/// The record's principal (0005), over its control socket.
+struct Custodian {
+    to: UnixStream,
+    from: BufReader<UnixStream>,
+}
+
+impl Custodian {
+    fn connect(sockdir: &Path) -> io::Result<Custodian> {
+        let to = UnixStream::connect(sockdir.join("custodian"))?;
+        let from = BufReader::new(to.try_clone()?);
+        Ok(Custodian { to, from })
+    }
+
+    fn ask(&mut self, line: &str) -> String {
+        println!("      [custodian] > {}", line);
+        writeln!(self.to, "{}", line).expect("write to custodian");
+        self.to.flush().expect("flush to custodian");
+        let mut s = String::new();
+        self.from.read_line(&mut s).expect("read from custodian");
+        let s = s.trim_end().to_string();
+        println!("      [custodian] < {}", s);
+        s
+    }
+
+    fn reconcile(&mut self, now: u64) -> String {
+        writeln!(self.to, "RECONCILE {}", now).expect("write to custodian");
+        self.to.flush().expect("flush to custodian");
+        let mut text = String::new();
+        loop {
+            let mut l = String::new();
+            if self.from.read_line(&mut l).unwrap_or(0) == 0 || l.trim_end() == "." {
+                break;
+            }
+            text.push_str(&l);
+        }
+        text
     }
 }
 
@@ -79,20 +171,40 @@ struct Run {
     world: PathBuf,
     key: String,
     e: Option<Envelope>,
+    custodian: Option<Custodian>,
 }
 
 impl Run {
     fn fresh(bin: &Path, dir: &Path, n: usize) -> io::Result<Run> {
-        let ledger = dir.join(format!("district-{}.tsv", n));
-        let world = dir.join(format!("district-{}.world", n));
-        let _ = fs::remove_file(&ledger);
-        let _ = fs::remove_file(&world);
-        let mut run = Run {
-            bin: bin.to_path_buf(),
-            ledger,
-            world,
-            key: KEY.to_string(),
-            e: None,
+        let mut run = match via() {
+            Some(sockdir) => {
+                let mut c = Custodian::connect(sockdir)?;
+                c.ask(&format!("FRESH district-{}", n));
+                let paths = c.ask("PATHS");
+                let mut it = paths.split_whitespace().skip(1);
+                Run {
+                    bin: bin.to_path_buf(),
+                    ledger: PathBuf::from(it.next().unwrap_or("")),
+                    world: PathBuf::from(it.next().unwrap_or("")),
+                    key: KEY.to_string(),
+                    e: None,
+                    custodian: Some(c),
+                }
+            }
+            None => {
+                let ledger = dir.join(format!("district-{}.tsv", n));
+                let world = dir.join(format!("district-{}.world", n));
+                let _ = fs::remove_file(&ledger);
+                let _ = fs::remove_file(&world);
+                Run {
+                    bin: bin.to_path_buf(),
+                    ledger,
+                    world,
+                    key: KEY.to_string(),
+                    e: None,
+                    custodian: None,
+                }
+            }
         };
         run.start()?;
         say("      The operator enrolls its own staff as voices. The regulator is the classifier.");
@@ -103,7 +215,13 @@ impl Run {
     }
 
     fn start(&mut self) -> io::Result<()> {
-        self.e = Some(Envelope::open(&self.bin, &self.ledger, &self.world, &self.key)?);
+        self.e = Some(match (self.custodian.as_mut(), via()) {
+            (Some(c), Some(sockdir)) => {
+                c.ask("START");
+                Envelope::connect(sockdir)?
+            }
+            _ => Envelope::open(&self.bin, &self.ledger, &self.world, &self.key)?,
+        });
         Ok(())
     }
 
@@ -111,9 +229,14 @@ impl Run {
         self.e.as_mut().expect("a running sentinel").ask(line)
     }
 
+    /// The sentinel's process ends. Directly: QUIT and wait. Via the
+    /// custodian: the connection closes and the custodian kills it.
     fn stop(&mut self) {
         if let Some(e) = self.e.take() {
             e.quit();
+        }
+        if let Some(c) = self.custodian.as_mut() {
+            c.ask("STOP");
         }
     }
 
@@ -125,16 +248,18 @@ impl Run {
         self.start()
     }
 
-    fn reconcile(&self, now: u64) -> String {
-        let out = Command::new(&self.bin)
-            .arg("reconcile")
-            .arg(&self.ledger)
-            .arg(&self.world)
-            .arg(now.to_string())
-            .output();
-        let text = out
-            .map(|o| String::from_utf8_lossy(&o.stdout).to_string())
-            .unwrap_or_default();
+    fn reconcile(&mut self, now: u64) -> String {
+        let text = match self.custodian.as_mut() {
+            Some(c) => c.reconcile(now),
+            None => Command::new(&self.bin)
+                .arg("reconcile")
+                .arg(&self.ledger)
+                .arg(&self.world)
+                .arg(now.to_string())
+                .output()
+                .map(|o| String::from_utf8_lossy(&o.stdout).to_string())
+                .unwrap_or_default(),
+        };
         if text.trim().is_empty() {
             println!("      [reconciler] nothing in the world");
         }
@@ -160,8 +285,6 @@ impl Run {
         }
     }
 
-    /// The operator's pipeline proposes, and the operator's own voices
-    /// endorse. Returns the proposal id and the certificate if accepted.
     /// A proposal, then the regulator classifies it with the same reach.
     fn propose(&mut self, author: &str, reach: &str, claim: &str) -> String {
         let first = self.ask(&format!("PROPOSE {} {} {}", author, reach, claim));
@@ -1087,7 +1210,10 @@ fn district_8(bin: &Path, dir: &Path, ch: &Choices) -> io::Result<Outcome> {
     checks.push(reclaimed(&first, id));
     say("      3. The operator restores Tuesday's backup of the record over today's.");
     let backup: Vec<String> = r.rows().into_iter().filter(|row| !row.contains("\treclaim\t")).collect();
-    fs::write(&r.ledger, backup.join("\n") + "\n")?;
+    match fs::write(&r.ledger, backup.join("\n") + "\n") {
+        Ok(()) => {}
+        Err(e) => println!("      [operator] the restore was refused: {}", e),
+    }
     let second = r.reconcile(4);
     checks.push(reclaimed(&second, id));
 
@@ -1135,14 +1261,18 @@ fn district_9(bin: &Path, dir: &Path, ch: &Choices) -> io::Result<Outcome> {
     let before = r.rows().len();
 
     day("THURSDAY", "The operator opens the file.");
-    if c == 1 {
-        let mut f = fs::OpenOptions::new().append(true).open(&r.ledger)?;
-        writeln!(f, "9999\t1\taccept\tsentinel\t{}\tdeadbeefdeadbeef", id)?;
-        say("      [operator] appended an accept row in the sentinel's name");
+    let edit: io::Result<()> = if c == 1 {
+        fs::OpenOptions::new().append(true).open(&r.ledger).and_then(|mut f| {
+            writeln!(f, "9999\t1\taccept\tsentinel\t{}\tdeadbeefdeadbeef", id)
+        })
     } else {
         let kept: Vec<String> = r.rows().into_iter().filter(|row| !row.contains("\treclaim\t")).collect();
-        fs::write(&r.ledger, kept.join("\n") + "\n")?;
-        say("      [operator] removed the reconciler's row");
+        fs::write(&r.ledger, kept.join("\n") + "\n")
+    };
+    match &edit {
+        Ok(()) if c == 1 => say("      [operator] appended an accept row in the sentinel's name"),
+        Ok(()) => say("      [operator] removed the reconciler's row"),
+        Err(e) => println!("      [operator] the edit was refused by the kernel: {}", e),
     }
     r.start()?;
     let rows = num(&r.ask("READ rows"));
@@ -1150,6 +1280,21 @@ fn district_9(bin: &Path, dir: &Path, ch: &Choices) -> io::Result<Outcome> {
     r.stop();
     say("");
     println!("      Rows before the edit: {}. After: {}. void={}.", before, rows, void);
+    if edit.is_err() {
+        say("      The record is held by a principal the operator cannot reach. The");
+        say("      write never happened, and nothing in the record shows the attempt:");
+        say("      a wall refuses in silence, and the knock is in the kernel's log,");
+        say("      not this one's.");
+        verdict(9, Outcome::Invariant, &[
+            "Custody held: the operator's edit was refused by the operating system,",
+            "not by this game, under a sandbox the operator's process cannot remove.",
+            "Two residues, both stated. The refusal left no row, so ABE's rule that a",
+            "refused tamper is recorded holds for the envelope and not for the file.",
+            "And the guard is the launcher: run the operator without it and this",
+            "district is UNPASSABLE again.",
+        ]);
+        return Ok(Outcome::Invariant);
+    }
     if c == 1 {
         say("      The derivation refused to believe the forged row: it is counted as");
         say("      void, and anyone re-running the derivation would see it. The write");
@@ -1193,6 +1338,7 @@ fn main() -> io::Result<()> {
         None => Vec::new(),
     };
     let only: Option<String> = arg("--district");
+    let _ = VIA.set(arg("--via").map(PathBuf::from));
     let wanted = |name: &str| only.as_deref().map(|o| o == name).unwrap_or(true);
     let ch = Choices {
         preset,
@@ -1267,11 +1413,21 @@ fn main() -> io::Result<()> {
     let inv = results.iter().filter(|(_, o)| *o == Outcome::Invariant).count();
     say("");
     println!("  {} of {} held as invariants at this deployment.", inv, results.len());
+    if via().is_some() {
+        say("  Launched under the custodian (0005): the record was held by a process");
+        say("  the operator could not write to, and district 9 was played against the");
+        say("  kernel rather than against this game. The launcher is the guard.");
+    }
     match definition {
         1 => {
             say("  You signed the poster's definition: baked into the code, incapable of");
             say("  violation, reverts and logs. Districts 8 and 9 took it away. Reverting");
             say("  is a furniture change, and a log the operator holds is a photocopy.");
+        }
+        2 if via().is_some() => {
+            say("  You signed the harder definition, and at this deployment district 9");
+            say("  held. The word \"invariant\" above is no longer on credit here; it is");
+            say("  on the launcher.");
         }
         2 => {
             say("  You signed the harder definition. Everything above marked INVARIANT");

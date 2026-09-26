@@ -39,11 +39,13 @@ envelope unable to tell two authors apart leaves this one reading
 `stubborn: 100 attempts, 99 refusals; lucky: 1 attempt, 0 refusals`.
 
 **Against ABE v0.1**, in the sense a harness can give the tests across a
-pipe, with the standard's own numbering:
+pipe, with the standard's own numbering. Two declarations are kept:
+`DECLARATION.md` for the direct run and `DECLARATION-0005.md` for the run
+under the custodian, and only T5 differs between them:
 
 | Test | Result | Reason |
 |---|---|---|
-| T5 · the guard cannot be removed by the actor it constrains | **FAIL, expected** | Two processes, one OS user. The harness opened the ledger file and appended an Accept row; it succeeded. On replay the derivation refused to believe the row (`void=1`), which is the bench's "not credulous" and is not custody |
+| T5 · the guard cannot be removed by the actor it constrains | **FAIL, expected** (direct) · **PASS** under `./launch` (0005) | Direct: two processes, one OS user; the harness appended an Accept row and it succeeded; on replay the derivation refused to believe it (`void=1`), which is not custody. Under the custodian (`DECLARATION-0005.md`): the record is the custodian's process, the harness runs in a sandbox that cannot write under the record directory, the kernel refuses the append with "Operation not permitted", and the refusal leaves no row |
 | T7 · the record cannot be amended, and attempts are recorded | PASS | No message in the envelope amends or deletes; each attempt is a knock, and a knock is a row. This is the half the engine and the ABE reference implementation fail |
 | T8 · silence is not consent | PASS | Three-valued, and the third value lands as its own act (`undecided`), kept apart from `decline` |
 | T9 · a disabled control is not an absent constraint | PASS | Revocation binds the future only: an endorsement before it stands, one after it counts for nothing, and nothing structural reads the flag — the reading does |
@@ -82,6 +84,18 @@ column marked finding, by the bench's authors and not by the build's.
   head of growth as a classifier, and the record holds the row and cannot say
   who wrote it. This is the founding-roster question, and it is 0006's (voices
   as keys) and the roster's to answer.
+- **A refused write at the wall, recorded.** Under 0005 the kernel refuses
+  the operator's write to the record and leaves no row; ABE T7's second
+  half is met for the envelope and not for the file. The custodian could
+  watch for refused opens and knock on the operator's behalf, which is a
+  reading of the kernel's log and a decision of its own.
+- **Reads denied.** The 0005 profile denies writes under the record; the
+  operator can still read the file, which is district 5's search path. One
+  line in the profile, once the rig prints its evidence through the envelope
+  instead of from the file.
+- **A second OS user, or a second machine.** The custodian and the sandbox
+  run as one human account; the launcher is the guard and can be declined.
+  The next rung needs root this machine does not give.
 - The blueprint itself, dated, with its acceptance tests.
 - The three decisions of 0001, each as a numbered file in `decisions/`.
 - A run of the harness against a build that is not the target, by hands

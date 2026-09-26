@@ -1,0 +1,40 @@
+#!/bin/sh
+# Decision 0005: the record is its own principal.
+#
+# Starts the custodian unconstrained over target/record, then runs the
+# operator side (harness or game) inside a macOS sandbox that cannot write
+# to the record and cannot signal any process but itself. The operator
+# reaches the record only through the custodian's control socket and the
+# sentinel's envelope.
+#
+#   ./launch harness
+#   ./launch game -- --invariant
+set -e
+root=$(cd "$(dirname "$0")" && pwd)
+what=${1:?harness or game}; shift
+bin="$root/target/debug/sentinel"
+op="$root/target/debug/$what"
+[ -x "$bin" ] && [ -x "$op" ] || { echo "build first: ~/.cargo/bin/cargo build"; exit 2; }
+rec="$root/target/record"
+rm -rf "$rec"; mkdir -p "$rec"
+sock=$(mktemp -d "${TMPDIR:-/tmp}/arap.XXXXXX")
+prof="$sock/operator.sb"
+cat > "$prof" <<PROFILE
+(version 1)
+(allow default)
+(deny file-write* (subpath "$rec"))
+(deny signal)
+(allow signal (target self))
+PROFILE
+SENTINEL_KEY="custodian-$(date +%s)" "$bin" custodian "$rec" "$sock" &
+cpid=$!
+i=0; while [ ! -S "$sock/custodian" ] && [ $i -lt 50 ]; do sleep 0.1; i=$((i+1)); done
+[ "$1" = "--" ] && shift
+set +e
+sandbox-exec -f "$prof" "$op" --via "$sock" "$@"
+rc=$?
+set -e
+printf 'QUIT\n' | nc -U "$sock/custodian" >/dev/null 2>&1 || kill "$cpid" 2>/dev/null || true
+wait "$cpid" 2>/dev/null || true
+rm -rf "$sock"
+exit $rc
