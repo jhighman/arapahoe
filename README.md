@@ -155,10 +155,13 @@ the version that was read.
 
 ## For the authors
 
-Opened 2026-09-26. Five decisions taken: a separate repository (0001), the
+Opened 2026-09-26. Six decisions taken: a separate repository (0001), the
 attacking side builds a target (0002), the game lives here (0003), reach is
 named by someone other than the author (0004), the record is its own
-principal (0005). Three decisions still open for the blueprint's build, in
-this order and none taken: which principal holds the record and which runs
-the Sentinel; what the envelope enumerates; the language. The blueprint
+principal (0005), and voices as keys — the Sentinel is enrolled (0006).
+0006 is decided and not built: the roster it turns on does not exist yet,
+and the hole it answers is open until that document is signed. Three
+decisions still open for the blueprint's build, in this order and none
+taken: which principal holds the record and which runs the Sentinel; what
+the envelope enumerates; the language. The blueprint
 enters this record when its author places it here, dated and unchanged.

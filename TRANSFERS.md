@@ -85,8 +85,9 @@ column marked finding, by the bench's authors and not by the build's.
   who wrote it. This is the founding-roster question, and it is 0006's (voices
   as keys) and the roster's to answer. The four items below are the shape
   that answer is to take, ruled on 2026-09-26 by the co-author against the
-  bench's milestone reading. A ruling is not a signature: each closes when
-  its document exists, and until then the hole stands as written above.
+  bench's milestone reading and recorded as `decisions/0006`. A ruling is
+  not a signature: each closes when its document exists, and until then the
+  hole stands as written above.
 - **The Founding Roster, and a charter to put it beside.** A role is a vest,
   and a vest without a fingerprint can be worn by whoever is running the
   process, so the Sentinel stops being a role and becomes an enrolled
