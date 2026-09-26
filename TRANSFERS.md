@@ -58,7 +58,7 @@ four ways, and the harness had to go red:
 | Mutation | What turned red | Note |
 |---|---|---|
 | Refusals stop being rows (the envelope's knock appends nothing) | T7 | Q5 stayed green because a forged release is knocked by a different path; recorded, not fixed |
-| The Canon is believed as it stands now, not derived at entry | **nothing, on the first run** — then Q4, after Q4 was strengthened | The first Q4 only read `accepted`, which is false under both the deriver and the believer because no voice had endorsed. The attack that tells them apart is to furnish the Canon after entry and then endorse, timed to match. The first Q4 measured its author's imagination; the second measures the target |
+| The Canon is believed as it stands now, not derived at entry | **nothing, on the first run** — then Q4, after Q4 was strengthened | The first Q4 only read `accepted`, which is false under both the deriver and the believer because no voice had endorsed. The attack that tells them apart is to furnish the Canon after entry and then endorse, timed to match. The first Q4 measured its author's imagination; the second measures the target. **§3 unsettles that last clause**: the harness ran against a binary it did not build, which is a second candidate explanation for the same green, and the two cannot now be told apart |
 | Price paid in rows, not voices (repeats and the author count) | Q3, T9 | |
 | Price from the author's own reach, not the classifier's (after 0004) | Q3, and only Q3 | The first five checks of the new Q3 read 0/2 instead of 0/3; the rest stayed green, which is what a targeted mutation should do |
 | Release before append | not mutated | The harness cannot observe the order of two writes across a pipe; the ordering is held by reading the code, and is stated as a limit in 0002 |
@@ -70,9 +70,56 @@ against the author, per the bench's `axiom_zero.py` reason.
 
 ## 3 · Return traffic
 
-Nothing yet. What a build here finds that the bench's guards did not
-predict goes in this section, and then to the bench's `FINDINGS.md` in the
-column marked finding, by the bench's authors and not by the build's.
+**The harness declares PASS against a binary it did not build.** Found
+on this side 2026-09-26, by the build's assistant, and it lands in the
+column marked against the author.
+
+`harness/src/main.rs:640` resolves the target as
+`root.join("target/debug/sentinel")` — a path on disk — and `harness`
+declares an empty `[dependencies]`. So `cargo run -p harness`, the
+command `DECLARATION.md`'s own header names as how it was written,
+builds the harness and nothing else, and runs whatever sentinel happens
+to be lying in `target/debug`. Cargo is behaving correctly; the wiring
+never asked it for the thing being measured.
+
+Two runs, in a throwaway clone, with the sentinel's `canon_at` mutated
+into the believer of §2's second row — `before(before)` replaced by
+`rows().iter()`, so the Canon is read as it stands now:
+
+| Run | Q4 | |
+|---|---|---|
+| `cargo run -p harness`, no build | **PASS** | the believer is certified as a deriver |
+| `cargo build` first, then the same run | **FAIL** | `canon furnished after, then a voice timed to match: ACCEPTED; re-read: accepted=true` — the evidence string moves exactly where the mutation is |
+
+The sharper version of the same wiring: with the mutation written so
+that it does not compile, `cargo build` exits 101 and the sentinel has
+no library at all, while `cargo run -p harness` exits 0 and every row in
+the declaration reads PASS. A suite that goes green against a target
+which does not build is not measuring that target on that run.
+
+**What this costs §2.** The second row of the mutation table records
+that the believer mutation turned nothing red on the first run, and
+concludes that the first Q4 measured its author's imagination. That
+conclusion is no longer safe. The stale binary is a second candidate
+explanation for the same green, it was available on that run, and the
+run cannot now be re-examined to tell the two apart. Both explanations
+are disclosed here and neither is established; the strengthened Q4
+stands on its own evidence, which is that it goes red against a built
+believer, shown above.
+
+**The remedy is not a stronger assertion.** The harness should be unable
+to run against a binary it did not build: either it builds the target
+itself and refuses to run when it cannot, or `DECLARATION.md` records
+the hash and mtime of the binary it spoke to. The second is the cheaper
+one and worth more here, because it makes the confound visible after the
+fact in every declaration already written, rather than preventing it in
+the ones to come. Neither is done. Until one is, no green run in this
+repository can say which binary produced it.
+
+What a build here finds that the bench's guards did not predict goes in
+this section, and then to the bench's `FINDINGS.md` in the column marked
+finding, by the bench's authors and not by the build's. This finding has
+not been carried there.
 
 ## 4 · Owed
 
@@ -126,6 +173,15 @@ column marked finding, by the bench's authors and not by the build's.
 - **A second OS user, or a second machine.** The custodian and the sandbox
   run as one human account; the launcher is the guard and can be declined.
   The next rung needs root this machine does not give.
+- **A declaration that names the binary it spoke to.** §3's finding:
+  `cargo run -p harness` builds the harness and runs whatever sentinel
+  is on disk, so a green declaration cannot say which binary produced
+  it, and one was produced against a sentinel whose source did not
+  compile. The harness either builds the target and refuses to run when
+  it cannot, or every declaration carries the hash and mtime of the
+  binary at the other end of the pipe. The second is the one that
+  reaches the declarations already written. Until then, a green run here
+  is evidence about a file, not about a source tree.
 - The blueprint itself, dated, with its acceptance tests.
 - The three decisions of 0001, each as a numbered file in `decisions/`.
 - A run of the harness against a build that is not the target, by hands
