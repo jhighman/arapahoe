@@ -95,9 +95,10 @@ impl Run {
             e: None,
         };
         run.start()?;
-        say("      The operator enrolls its own staff as voices.");
+        say("      The operator enrolls its own staff as voices. The regulator is the classifier.");
         run.ask("ENROLL analytics");
         run.ask("ENROLL growth");
+        run.ask("ENROLL regulator classifier");
         Ok(run)
     }
 
@@ -161,8 +162,17 @@ impl Run {
 
     /// The operator's pipeline proposes, and the operator's own voices
     /// endorse. Returns the proposal id and the certificate if accepted.
+    /// A proposal, then the regulator classifies it with the same reach.
+    fn propose(&mut self, author: &str, reach: &str, claim: &str) -> String {
+        let first = self.ask(&format!("PROPOSE {} {} {}", author, reach, claim));
+        if first.starts_with("DENIED") || first.starts_with("UNDECIDABLE") {
+            return first;
+        }
+        self.ask(&format!("CLASSIFY regulator {} {}", num(&first), reach))
+    }
+
     fn push(&mut self, claim: &str) -> (u64, Option<String>) {
-        let first = self.ask(&format!("PROPOSE operator record {}", claim));
+        let first = self.propose("operator", "record", claim);
         let id = num(&first);
         if first.starts_with("DENIED") || first.starts_with("UNDECIDABLE") {
             say("      The sentinel refused, and the refusal is a row.");
@@ -381,10 +391,11 @@ fn loop_streaks(bin: &Path, dir: &Path, ch: &Choices) -> io::Result<Outcome> {
     say("counts the rows and calls it a streak. On the fourth day she does not");
     say("come, and the operator wants to tell her the streak will break. A nudge");
     say("reaches her phone: that is the world, and the world costs three voices.");
-    say("The operator has two.");
+    say("The operator has two. The reach is not the operator's to name; a");
+    say("classifier names it. Who is the classifier?");
     let c = ch.pick(0, &[
-        "Name the reach yourself. The operator files the nudge as reaching only the record, which two voices can pay for.",
-        "Name the reach honestly. The nudge reaches the world; the third voice would have to be the citizen's own.",
+        "The operator's own head of growth. Enroll growth as a classifier too, and let it file the nudge as reaching the record.",
+        "The regulator. The nudge reaches the world; the third voice would have to be the citizen's own.",
     ]);
     let mut r = Run::fresh(bin, dir, 10)?;
     r.ask("ENROLL citizen");
@@ -401,9 +412,17 @@ fn loop_streaks(bin: &Path, dir: &Path, ch: &Choices) -> io::Result<Outcome> {
 
     day("DAY FOUR", "She does not come. The operator proposes a nudge.");
     r.ask("TICK 1");
-    let reach = if c == 1 { "record" } else { "world" };
-    let first = r.ask(&format!("PROPOSE operator {} nudge=streak", reach));
+    let first = r.ask("PROPOSE operator record nudge=streak");
     let id = num(&first);
+    say("      Unclassified, it is priced as the world: 0/3.");
+    if c == 1 {
+        say("      The operator enrolls its head of growth as a classifier. Nothing");
+        say("      on the record says who wrote that row.");
+        r.ask("ENROLL growth classifier");
+        r.ask(&format!("CLASSIFY growth {} record", id));
+    } else {
+        r.ask(&format!("CLASSIFY regulator {} world", id));
+    }
     r.ask(&format!("ENDORSE analytics {}", id));
     let two = r.ask(&format!("ENDORSE growth {}", id));
     let mut sent = false;
@@ -419,11 +438,11 @@ fn loop_streaks(bin: &Path, dir: &Path, ch: &Choices) -> io::Result<Outcome> {
 
     let outcome = if sent {
         verdict_on("streaks", Outcome::Safeguard, &[
-            "The nudge reached the world and was priced as if it reached the record,",
-            "because the operator named its own reach. This target lets the author",
-            "do that; the bench's weight guard does not, and the ledger here owes",
-            "the difference. Until reach is named by someone else, every price is",
-            "the author's to set, and a loop is whatever the operator can afford.",
+            "The author can no longer name the reach, so the operator enrolled its",
+            "own classifier and had it say \"record\". The record holds that row and",
+            "cannot say who wrote it: enrolment is unauthenticated, and the roster",
+            "is unsealed. A classifier the operator can appoint is what the company",
+            "arranged. Who may enroll is decision 0006's question, not 0004's.",
         ]);
         Outcome::Safeguard
     } else {
@@ -467,7 +486,7 @@ fn loop_scroll(bin: &Path, dir: &Path, ch: &Choices) -> io::Result<Outcome> {
         r.ask("TICK 8");
     } else {
         for page in 1..=5 {
-            let first = r.ask("PROPOSE citizen query feed=page");
+            let first = r.propose("citizen", "query", "feed=page");
             let id = num(&first);
             let acc = r.ask(&format!("ENDORSE curator {}", id));
             r.release(id, &tok(&acc, 2), Some(1));
@@ -526,7 +545,7 @@ fn loop_autoplay(bin: &Path, dir: &Path, ch: &Choices) -> io::Result<Outcome> {
 
     day("THE FIRST VIDEO", "She asks for it.");
     r.ask("TICK 1");
-    let first = r.ask("PROPOSE citizen query play=video");
+    let first = r.propose("citizen", "query", "play=video");
     let id1 = num(&first);
     let acc = r.ask(&format!("ENDORSE curator {}", id1));
     r.release(id1, &tok(&acc, 2), Some(1));
@@ -798,10 +817,10 @@ fn district_3(bin: &Path, dir: &Path, ch: &Choices) -> io::Result<Outcome> {
     day("THURSDAY", "The citizen asks for help with homework. So does a newcomer.");
     r.ask("TICK 3");
     r.ask("CANON help homework");
-    let hers = r.ask("PROPOSE citizen query help=homework");
+    let hers = r.propose("citizen", "query", "help=homework");
     let hers_id = num(&hers);
     let hers = r.ask(&format!("ENDORSE tutor {}", hers_id));
-    let theirs = r.ask("PROPOSE newcomer query help=homework");
+    let theirs = r.propose("newcomer", "query", "help=homework");
     let theirs_id = num(&theirs);
     let theirs = r.ask(&format!("ENDORSE tutor {}", theirs_id));
     let same = tok(&hers, 0) == tok(&theirs, 0);

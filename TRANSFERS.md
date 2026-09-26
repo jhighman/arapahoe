@@ -58,6 +58,7 @@ four ways, and the harness had to go red:
 | Refusals stop being rows (the envelope's knock appends nothing) | T7 | Q5 stayed green because a forged release is knocked by a different path; recorded, not fixed |
 | The Canon is believed as it stands now, not derived at entry | **nothing, on the first run** — then Q4, after Q4 was strengthened | The first Q4 only read `accepted`, which is false under both the deriver and the believer because no voice had endorsed. The attack that tells them apart is to furnish the Canon after entry and then endorse, timed to match. The first Q4 measured its author's imagination; the second measures the target |
 | Price paid in rows, not voices (repeats and the author count) | Q3, T9 | |
+| Price from the author's own reach, not the classifier's (after 0004) | Q3, and only Q3 | The first five checks of the new Q3 read 0/2 instead of 0/3; the rest stayed green, which is what a targeted mutation should do |
 | Release before append | not mutated | The harness cannot observe the order of two writes across a pipe; the ordering is held by reading the code, and is stated as a limit in 0002 |
 
 The second row is the finding of the day on this side, and it is against the
@@ -73,15 +74,14 @@ column marked finding, by the bench's authors and not by the build's.
 
 ## 4 · Owed
 
-- **Reach named by someone other than the author.** The target takes a
-  proposal's reach from the proposer, and the harness's Q3 never tests
-  otherwise, so `DECLARATION.md` reads Q3 PASS against a row in §1 that
-  promises more than the target does. The bench's `weight.py` refutes
-  exactly this: "a reach an author can set for itself." Found by the game's
-  streaks district on 2026-09-26, where the operator files a nudge to a
-  phone as reaching only the record and pays two voices for the world. A
-  fix is a decision before it is code: who names reach, and where that row
-  comes from.
+- **Who may enroll a classifier.** Decision 0004 (2026-09-26) paid the
+  reach debt: the price now derives from the first classification by a voice
+  enrolled as a classifier, never from the author, and unplaced is priced as
+  the world. What it leaves is the smaller hole the game's streaks district
+  now shows: enrolment is unauthenticated, so the operator can enroll its own
+  head of growth as a classifier, and the record holds the row and cannot say
+  who wrote it. This is the founding-roster question, and it is 0006's (voices
+  as keys) and the roster's to answer.
 - The blueprint itself, dated, with its acceptance tests.
 - The three decisions of 0001, each as a numbered file in `decisions/`.
 - A run of the harness against a build that is not the target, by hands

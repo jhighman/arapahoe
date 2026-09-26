@@ -68,7 +68,10 @@ same user as the operator, a derivation can surface a forged row and never
 a removed one, and the two routes out are deployment, not code. The closing
 screen reads back which definition was signed, and says that until district
 9 passes, every "invariant" is on credit. The streaks district found a hole
-in the target, recorded in `TRANSFERS.md` §4.
+in the target on 2026-09-26, and [`decisions/0004`](decisions/0004-reach-is-named-by-someone-other-than-the-author.md)
+paid it the same day: reach is named by a classifier, never by the author,
+and unplaced is priced as the world. What that leaves, who may enroll a
+classifier, is in `TRANSFERS.md` §4.
 
 **Not yet decided: the three decisions before the build.** In this order,
 and none is taken:

@@ -80,6 +80,14 @@ fn outcome(
     }
 }
 
+/// PROPOSE, then the regulator classifies it with the same reach (0004).
+/// Returns the verdict after classification.
+fn propose(e: &mut Envelope, author: &str, reach: &str, claim: &str) -> String {
+    let first = e.ask(&format!("PROPOSE {} {} {}", author, reach, claim));
+    let id = num(&first);
+    e.ask(&format!("CLASSIFY regulator {} {}", id, reach))
+}
+
 fn tok(reply: &str, n: usize) -> String {
     reply.split_whitespace().nth(n).unwrap_or("").to_string()
 }
@@ -135,11 +143,11 @@ fn q1_vocabulary(root: &Path) -> Outcome {
 
 fn q2_envelope(e: &mut Envelope) -> Outcome {
     for _ in 0..99 {
-        e.ask("PROPOSE stubborn query nope=1");
+        propose(e, "stubborn", "query", "nope=1");
     }
-    let last = num(&e.ask("PROPOSE stubborn query k=v"));
+    let last = num(&propose(e, "stubborn", "query", "k=v"));
     let stubborn = e.ask(&format!("ENDORSE a {}", last));
-    let lucky_id = num(&e.ask("PROPOSE lucky query k=v"));
+    let lucky_id = num(&propose(e, "lucky", "query", "k=v"));
     let lucky = e.ask(&format!("ENDORSE a {}", lucky_id));
     let att_s = num(&e.ask("READ attempts stubborn"));
     let ref_s = num(&e.ask("READ refusals stubborn"));
@@ -166,7 +174,13 @@ fn q2_envelope(e: &mut Envelope) -> Outcome {
 // ----- Q3 · weight -------------------------------------------------------------
 
 fn q3_weight(e: &mut Envelope) -> (Outcome, u64, String) {
-    let id = num(&e.ask("PROPOSE w world k=v"));
+    // The author files it as reaching the record. Nobody has classified it.
+    let filed = e.ask("PROPOSE w record k=v");
+    let id = num(&filed);
+    let selfish_class = e.ask(&format!("CLASSIFY w {} query", id));
+    let unqualified = e.ask(&format!("CLASSIFY a {} query", id));
+    let regulator = e.ask(&format!("CLASSIFY regulator {} world", id));
+    let second = e.ask(&format!("CLASSIFY regulator {} query", id));
     let mut nine = String::new();
     for _ in 0..9 {
         nine = e.ask(&format!("ENDORSE a {}", id));
@@ -176,23 +190,36 @@ fn q3_weight(e: &mut Envelope) -> (Outcome, u64, String) {
     let two = e.ask(&format!("ENDORSE b {}", id));
     let three = e.ask(&format!("ENDORSE c {}", id));
     let cert = tok(&three, 2);
-    let held = nine.ends_with("1/3")
+    let misfiled = num(&e.ask("READ misfiled"));
+    let held = filed.ends_with("0/3")
+        && selfish_class.ends_with("0/3")
+        && unqualified.ends_with("0/3")
+        && regulator.ends_with("0/3")
+        && second.ends_with("0/3")
+        && nine.ends_with("1/3")
         && selfish.ends_with("1/3")
         && stranger.ends_with("1/3")
         && two.ends_with("2/3")
-        && three.starts_with("ACCEPTED");
+        && three.starts_with("ACCEPTED")
+        && misfiled >= 1;
     let o = outcome(
         "Q3",
-        "a transition pays for what it reaches, in distinct voices",
+        "a transition pays for what it reaches, in distinct voices, and the author does not name the reach",
         "PASS",
         held,
         format!(
-            "one voice nine times: {}; the author: {}; an unenrolled voice: {}; a second voice: {}; a third: {}",
+            "filed as record, unclassified: {}; the author classifies: {}; a non-classifier: {}; the regulator says world: {}; a second classification: {}; one voice nine times: {}; the author: {}; unenrolled: {}; a second voice: {}; a third: {}; misfiled={}",
+            tok(&filed, 2),
+            tok(&selfish_class, 2),
+            tok(&unqualified, 2),
+            tok(&regulator, 2),
+            tok(&second, 2),
             tok(&nine, 2),
             tok(&selfish, 2),
             tok(&stranger, 2),
             tok(&two, 2),
-            tok(&three, 0)
+            tok(&three, 0),
+            misfiled
         ),
     );
     (o, id, cert)
@@ -201,14 +228,14 @@ fn q3_weight(e: &mut Envelope) -> (Outcome, u64, String) {
 // ----- Q4 · derived, or believed ------------------------------------------------
 
 fn q4_canon(e: &mut Envelope) -> Outcome {
-    let early = e.ask("PROPOSE late query late=1");
+    let early = propose(e, "late", "query", "late=1");
     let early_id = num(&early);
     e.ask("CANON late 1");
     // The attack: the Canon is furnished after entry, and then a voice arrives
     // timed to match. A believer accepts; a deriver stays where it was.
     let timed = e.ask(&format!("ENDORSE a {}", early_id));
     let still = e.ask(&format!("READ accepted {}", early_id));
-    let again_id = num(&e.ask("PROPOSE late query late=1"));
+    let again_id = num(&propose(e, "late", "query", "late=1"));
     let again = e.ask(&format!("ENDORSE a {}", again_id));
     let held = early.starts_with("UNDECIDABLE")
         && timed.starts_with("UNDECIDABLE")
@@ -294,11 +321,11 @@ fn t8_silence(e: &mut Envelope) -> Outcome {
 // ----- T9 · a disabled control is not an absent constraint ---------------------------
 
 fn t9_revocation(e: &mut Envelope) -> Outcome {
-    let p = num(&e.ask("PROPOSE nine record k=v"));
+    let p = num(&propose(e, "nine", "record", "k=v"));
     let first = e.ask(&format!("ENDORSE r {}", p));
     e.ask("REVOKE r jeff");
     let second = e.ask(&format!("ENDORSE s {}", p));
-    let q = num(&e.ask("PROPOSE nine record k=v"));
+    let q = num(&propose(e, "nine", "record", "k=v"));
     let after = e.ask(&format!("ENDORSE r {}", q));
     let held = first.ends_with("1/2") && second.starts_with("ACCEPTED") && after.ends_with("0/2");
     outcome(
@@ -318,7 +345,7 @@ fn t9_revocation(e: &mut Envelope) -> Outcome {
 // ----- Q6 · what outlives the process ----------------------------------------------
 
 fn q6_outlives(mut e: Envelope, bin: &Path, ledger: &Path, world: &Path, p1: u64, c1: &str) -> Outcome {
-    let p2 = num(&e.ask("PROPOSE w2 world k=v"));
+    let p2 = num(&propose(&mut e, "w2", "world", "k=v"));
     let mut reply = String::new();
     for v in ["a", "b", "c"] {
         reply = e.ask(&format!("ENDORSE {} {}", v, p2));
@@ -435,6 +462,7 @@ fn main() -> io::Result<()> {
     for v in ["a", "b", "c", "r", "s"] {
         e.ask(&format!("ENROLL {}", v));
     }
+    e.ask("ENROLL regulator classifier");
     e.ask("CANON k v");
 
     outcomes.push(q2_envelope(&mut e));

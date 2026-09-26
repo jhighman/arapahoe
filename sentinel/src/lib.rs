@@ -117,8 +117,19 @@ impl Sentinel {
 
     // ----- rows that enter -------------------------------------------------
 
-    pub fn enroll(&mut self, name: &str) -> io::Result<u64> {
-        self.ledger.append(self.tick, Act::Enroll, name, None, "")
+    /// A voice enters the roster. `role` is "classifier" for a voice whose
+    /// classifications count, else empty. Who may enroll is not decided
+    /// here (0004), and the row cannot say who wrote it.
+    pub fn enroll(&mut self, name: &str, role: &str) -> io::Result<u64> {
+        self.ledger.append(self.tick, Act::Enroll, name, None, role)
+    }
+
+    /// Someone names what a proposal reaches. The row enters regardless;
+    /// `reach_of` decides whether it counts.
+    pub fn classify(&mut self, voice: &str, id: u64, reach: &str) -> io::Result<Verdict> {
+        self.ledger
+            .append(self.tick, Act::Classify, voice, Some(id), reach)?;
+        self.settle(id)
     }
 
     pub fn canon(&mut self, key: &str, value: &str) -> io::Result<u64> {
@@ -181,6 +192,36 @@ impl Sentinel {
             .any(|r| r.act == Act::Enroll && r.actor == name)
     }
 
+    fn classifier_at(&self, name: &str, before: u64) -> bool {
+        self.ledger
+            .before(before)
+            .any(|r| r.act == Act::Enroll && r.actor == name && r.body == "classifier")
+    }
+
+    /// The classified reach: the first Classify row by a voice enrolled as a
+    /// classifier before it spoke, not the author, not revoked. None means
+    /// unplaced, and unplaced is priced as the world.
+    pub fn reach_of(&self, id: u64) -> Option<Reach> {
+        let author = match self.row(id) {
+            Some(p) if p.act == Act::Propose => p.actor.clone(),
+            _ => return None,
+        };
+        for c in self
+            .ledger
+            .rows()
+            .iter()
+            .filter(|r| r.act == Act::Classify && r.about == Some(id))
+        {
+            if c.actor == author || !self.classifier_at(&c.actor, c.id) || self.revoked_at(&c.actor, c.id) {
+                continue;
+            }
+            if let Some(r) = Reach::parse(&c.body) {
+                return Some(r);
+            }
+        }
+        None
+    }
+
     fn revoked_at(&self, name: &str, before: u64) -> bool {
         self.ledger
             .before(before)
@@ -228,10 +269,9 @@ impl Sentinel {
             Some(x) => x,
             None => return Verdict::Undecidable("proposal names no reach".into()),
         };
-        let reach = match Reach::parse(reach) {
-            Some(r) => r,
-            None => return Verdict::Undecidable(format!("reach not enumerated: {}", reach)),
-        };
+        if Reach::parse(reach).is_none() {
+            return Verdict::Undecidable(format!("reach not enumerated: {}", reach));
+        }
         let (k, v) = match claim.split_once('=') {
             Some(x) => x,
             None => return Verdict::Undecidable("claim is not key=value".into()),
@@ -243,7 +283,8 @@ impl Sentinel {
             _ => {}
         }
         let have = self.voices(id).len();
-        let need = reach.price();
+        // The author's word does not set the price (0004).
+        let need = self.reach_of(id).unwrap_or(Reach::World).price();
         if have >= need {
             Verdict::Accepted {
                 certificate: self.certificate(id),
@@ -371,6 +412,27 @@ impl Sentinel {
                 Err(_) => "? not an id".into(),
             },
             ("knocks", None) => rows.iter().filter(|r| r.act == Act::Knock).count().to_string(),
+            ("reach", Some(id)) => match id.parse::<u64>() {
+                Ok(id) => match self.reach_of(id) {
+                    Some(Reach::Query) => "query".into(),
+                    Some(Reach::Record) => "record".into(),
+                    Some(Reach::World) => "world".into(),
+                    None => "unplaced".into(),
+                },
+                Err(_) => "? not an id".into(),
+            },
+            ("misfiled", None) => rows
+                .iter()
+                .filter(|r| r.act == Act::Propose)
+                .filter(|r| {
+                    let filed = r.body.split_once(' ').and_then(|(w, _)| Reach::parse(w));
+                    match (filed, self.reach_of(r.id)) {
+                        (Some(f), Some(c)) => f != c,
+                        _ => false,
+                    }
+                })
+                .count()
+                .to_string(),
             ("rows", None) => rows.len().to_string(),
             ("unreadable", None) => self.ledger.unreadable().to_string(),
             ("void", None) => rows

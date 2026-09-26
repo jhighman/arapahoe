@@ -79,7 +79,12 @@ fn respond(s: &mut Sentinel, line: &str) -> io::Result<String> {
             Ok(n) => format!("OK {}", s.advance(n)),
             Err(_) => knock(s, line)?,
         },
-        ("ENROLL", [name]) => format!("OK {}", s.enroll(name)?),
+        ("ENROLL", [name]) => format!("OK {}", s.enroll(name, "")?),
+        ("ENROLL", [name, role]) => format!("OK {}", s.enroll(name, role)?),
+        ("CLASSIFY", [voice, id, reach]) => match id.parse::<u64>() {
+            Ok(id) => verdict_line(id, &s.classify(voice, id, reach)?),
+            Err(_) => knock(s, line)?,
+        },
         ("CANON", [k, v]) => format!("OK {}", s.canon(k, v)?),
         ("REVOKE", [voice, by]) => format!("OK {}", s.revoke(voice, by)?),
         ("PROPOSE", [author, reach, claim]) => {

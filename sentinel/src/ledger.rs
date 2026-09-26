@@ -28,10 +28,11 @@ pub enum Act {
     Reclaim,
     Revoke,
     Knock,
+    Classify,
 }
 
 impl Act {
-    pub const ALL: [Act; 12] = [
+    pub const ALL: [Act; 13] = [
         Act::Enroll,
         Act::Canon,
         Act::Propose,
@@ -44,6 +45,7 @@ impl Act {
         Act::Reclaim,
         Act::Revoke,
         Act::Knock,
+        Act::Classify,
     ];
 
     pub fn name(self) -> &'static str {
@@ -60,6 +62,7 @@ impl Act {
             Act::Reclaim => "reclaim",
             Act::Revoke => "revoke",
             Act::Knock => "knock",
+            Act::Classify => "classify",
         }
     }
 
