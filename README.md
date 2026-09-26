@@ -19,7 +19,25 @@ this repository when its author places it here, with its date and its
 acceptance tests, and that entry is the first row of the record. Until then
 every sentence in this repository is about a described architecture.
 
-**Not yet here: any code.** Three decisions come before code, in this order,
+**Here: a target and a harness, and neither is the build.** Decided in
+[`decisions/0002`](decisions/0002-the-attacking-side-builds-a-target.md):
+`sentinel/` is a Sentinel-shaped target — a governed transaction lifecycle
+over an append-only ledger, spoken to only through an enumerable envelope —
+and `harness/` is the attacking side above it, which spawns the target as a
+separate process and runs the six questions of the reading and the ABE
+tests it can reach across a pipe. The target exists so the harness has
+something to be wrong about. It is not ARAPAHOE, and it decides nothing for
+ARAPAHOE; the three decisions below stay open. Rust, no dependencies:
+
+```
+~/.cargo/bin/cargo run -p harness
+```
+
+writes [`DECLARATION.md`](DECLARATION.md), expectation beside result, and
+exits with the number of rows where they differ. T5 is expected to FAIL and
+does, for the reason the row states.
+
+**Not yet decided: the three decisions before the build.** In this order,
 and none is taken:
 
 1. **Which principal holds the record, and which runs the Sentinel.** The
@@ -33,7 +51,8 @@ and none is taken:
 3. **The language.** Named last, so that it is chosen for what the first two
    decisions need and not for what its name promises. "Rust Sentinel" in the
    blueprint bundles a language claim with a privilege claim; here they are
-   kept apart.
+   kept apart. The target is in Rust for the target's own reasons, stated in
+   0002, and that is not this decision.
 
 **Here: the standing questions.** Six, from the reading, each already priced
 on the bench in its own idiom and none yet priced against ARAPAHOE itself.
@@ -95,5 +114,5 @@ One word, one act, and the reservation reaches every surface here:
   premises. The other word is not used.
 
 The bench's `vocabulary.py` parses Python and cannot reach a build in
-another language. A guard that can is owed by the build, in the build's
-language, and is listed as owed in `TRANSFERS.md` until it exists.
+another language. The harness's Q1 scans both crates' source for the
+refused words on every run; a build in a further language owes its own.

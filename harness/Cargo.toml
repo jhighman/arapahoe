@@ -1,0 +1,7 @@
+[package]
+name = "harness"
+version = "0.1.0"
+edition = "2021"
+description = "The attacking side. Spawns the sentinel as a separate process, speaks only through the envelope, and declares what it found."
+
+[dependencies]

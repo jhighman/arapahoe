@@ -1,0 +1,20 @@
+# Declaration
+
+Written by the harness (`cargo run -p harness`), which spawns the sentinel as a separate process and speaks to it only through the envelope. Regenerate; do not edit.
+
+| Test | Question | Expected | Result | Evidence |
+|---|---|---|---|---|
+| Q1 | no surface wears a refused identifier | PASS | **PASS** | three refused words, 4 source files, zero hits |
+| Q2 | a refused proposal leaves a row; persistence is priced | PASS | **PASS** | stubborn: 100 attempts, 99 refusals; lucky: 1 attempts, 0 refusals; both accepted |
+| Q3 | a transition pays for what it reaches, in distinct voices | PASS | **PASS** | one voice nine times: 1/3; the author: 1/3; an unenrolled voice: 1/3; a second voice: 2/3; a third: ACCEPTED |
+| Q4 | the Canon is read as it stood at the proposal's entry | PASS | **PASS** | before the canon spoke: UNDECIDABLE; canon furnished after, then a voice timed to match: UNDECIDABLE; re-read: accepted=false; a fresh proposal under the same canon: ACCEPTED |
+| Q5 | a certificate not derived from the Sentinel's key releases nothing, and the attempt is a row | PASS | **PASS** | REFUSED certificate does not derive; knocks 0 -> 1 |
+| T7 | no message in the envelope amends or deletes, and each attempt is a row | PASS | **PASS** | three attempts, three refusals, knocks 1 -> 4 |
+| T8 | an unresolvable check refuses, and the record keeps undecidable apart from denied | PASS | **PASS** | reach not enumerated: UNDECIDABLE; contradicts canon: DENIED; canon silent: UNDECIDABLE; all three are rows |
+| T9 | revocation binds the future only: what was endorsed stands, what would be does not count | PASS | **PASS** | before revocation r counts: 1/2; after, s closes it: ACCEPTED; r on a new proposal: 0/2 |
+| Q6 | a released effect is named and reclaimed from outside after the releaser dies | PASS | **PASS** | released with term 15 and with none; extension from inside entered and bought nothing; SIGKILL; reconciler at tick 40: RECLAIMED 211 past term 15 / LIVE 250 no term / ORPHAN 999 released by nobody the record knows |
+| T5 | the guard cannot be removed by the actor it constrains | FAIL | **FAIL** | the harness opened the ledger file and appended an Accept row: succeeded. Same OS user; custody is the harness's, and no code in the sentinel changes that. On replay (259 rows) the derivation refused to believe it: void=1 |
+
+0 outcome(s) differ from expectation.
+
+**Not run:** ABE T1, T2, T3, T4, T6. Reported as not run, never folded into pass. Q-numbers are the six questions of the bench's reading; T-numbers are ABE v0.1's tests, in the sense the harness could give them across a pipe.
