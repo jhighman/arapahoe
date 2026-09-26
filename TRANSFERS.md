@@ -83,7 +83,36 @@ column marked finding, by the bench's authors and not by the build's.
   now shows: enrolment is unauthenticated, so the operator can enroll its own
   head of growth as a classifier, and the record holds the row and cannot say
   who wrote it. This is the founding-roster question, and it is 0006's (voices
-  as keys) and the roster's to answer.
+  as keys) and the roster's to answer. The four items below are the shape
+  that answer is to take, ruled on 2026-09-26 by the co-author against the
+  bench's milestone reading. A ruling is not a signature: each closes when
+  its document exists, and until then the hole stands as written above.
+- **The Founding Roster, and a charter to put it beside.** A role is a vest,
+  and a vest without a fingerprint can be worn by whoever is running the
+  process, so the Sentinel stops being a role and becomes an enrolled
+  identity. Genesis lives outside the ledger: a signed roster next to a
+  `CHARTER.md` that this repository does not yet have. That document is the
+  only place a vest is issued, and amending it is an authors' act rather than
+  a runtime write.
+- **A runtime assertion against a hash, not against a file.** A process may
+  speak as Sentinel only where its fingerprint matches a row in the roster,
+  and the engine checks a hash of the roster rather than that a file is
+  present. The difference is the whole of it: a file anyone can drop in is
+  another vest without a fingerprint.
+- **A second key, offline.** Two keys, two jobs. One is enrolled and visible
+  and is how the Sentinel proves itself while running. The other is in a
+  vault, never on this machine and never in git, and is the only thing that
+  amends the roster; the engine never sees it. Neither author can rewrite the
+  vest alone, which is the property being bought.
+- **A policy layer for the price and the term.** The Sentinel is a turnstile:
+  it checks that a ticket is valid and that a price was paid, and it does not
+  print the price list. `weight.py` and `outlives.py` showed the gap exactly —
+  both compute once a reach or a term is given, and neither can say who is
+  allowed to give it. Meaning belongs in the charter and the ABE assignment;
+  authority belongs to the authors of that layer; placing a price or a term is
+  an act carrying a fingerprint rather than a number typed by whoever wears
+  the vest. Until the roster is signed, the calculator still accepts a number
+  from the air.
 - **A refused write at the wall, recorded.** Under 0005 the kernel refuses
   the operator's write to the record and leaves no row; ABE T7's second
   half is met for the envelope and not for the file. The custodian could
@@ -99,6 +128,10 @@ column marked finding, by the bench's authors and not by the build's.
 - The blueprint itself, dated, with its acceptance tests.
 - The three decisions of 0001, each as a numbered file in `decisions/`.
 - A run of the harness against a build that is not the target, by hands
-  that did not write the harness.
+  that did not write the harness. Restated on 2026-09-26 the way a
+  manufacturer states it: a green run against a Python target does not
+  certify a Rust principal, and a mutation disclosed is not a mutation
+  blessed. Until that run exists, nobody gets to say the thing itself was
+  tested.
 - Ordering observed rather than read: a way for something outside the
   process to see that the append preceded the release.
