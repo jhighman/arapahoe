@@ -49,7 +49,15 @@ something the harness breaks on purpose to check that the rule is real.
 
 **The principle's limit is kept in view.** None of this shows that a verdict
 is correct. What it shows is that a change in a claim's status is visible,
-conditional, attributable, and challengeable from outside. The engine has
+conditional, attributable, and challengeable from outside.
+
+It does not show that what crossed was what it claimed to be, either.
+`f7d0b61` found this harness measuring a stale binary — sound questions,
+wrong subject — and a second site found the dual: a suite with every guard
+falsifiable, every guard passing, and the artefact still not what it said
+it was (`decisions/0007`, `TRANSFERS.md` §5). **A boundary checks the
+warrant it was given, not the claim it was given it for.** Each is
+sufficient for green, and neither is visible from inside the suite. The engine has
 been broken four ways on purpose and had to go red each time; one of those
 mutations turned nothing red on its first run, and that is recorded rather
 than smoothed over (`TRANSFERS.md` §2). Two of the game's verdicts are

@@ -192,3 +192,64 @@ not been carried there.
   tested.
 - Ordering observed rather than read: a way for something outside the
   process to see that the append preceded the release.
+
+## 5 · A second site, without a sentinel — **NOT RUN HERE**
+
+`github.com/jhighman/milo-and-me`, entered by `decisions/0007` on
+2026-10-07. A large project built under written authority with executable
+rules, by the same author and the same assistant, in a domain with no
+transactions in it, and with none of this engine installed. Not a second
+implementation: a place where the principle's predictions can be checked
+where it is absent.
+
+**The site is closed and this file is public.** Every commit cited below is
+one a reader cannot open. That is a real weakening and is not repaired by
+restating it: what follows is testimony about a place the reader cannot go,
+offered by the pair who built it. It is entered because keeping a finding
+out of the record for being inconvenient to verify is the failure this
+repository exists to refuse. Where a finding restates as a claim about
+*this* repository's open code, it has been, and that half is checkable.
+
+**The dual of §3.** §3 records the harness declaring PASS against a binary
+it did not build — sound questions, wrong subject. The second site produced
+the other half: a morph suite that held a shape to its creature kind for
+kind and station for station, swept a hundred interpolated points for a
+collapse, and proved every guard could fail by reverting what it protects.
+All of it passed. The shape was a horse with no legs, built from an animal
+that has none to give, and it shipped. Every assertion was about the
+specification; none was about whether the thing was what it said it was.
+Both failures are sufficient for green and neither is visible from inside
+the suite. The README's limit paragraph carries the consequence.
+
+**Field evidence for 0004.** This engine surfaces a disagreement between
+two namings of one fact as a row and refuses to resolve it. That site has
+no such mechanism, and in one working day the same shape appeared six
+times — a roster named in a table and again in a hardcoded branch; an
+acceptance that walked four animals by hand and asserted on four others,
+reporting on one it had never stood in; an authoring page offering a
+vocabulary the engine behind it did not hold; two builds of one game with
+nothing checking their casts agreed. Each was silent. Each was found by
+something other than the suite. 0004 argues the remedy; this is the cost of
+not having it. **Whether a drift between two declarations nobody reads
+together is the same thing as a disagreement between two namings that are
+read together is left open, in 0007 and here.**
+
+**A rule whose warrant is "look at it" is not a rule.** That site keeps a
+table of its own child-safety rules, each with the thing that holds it. One
+row read *no account, no network, no model at runtime; one offline file*,
+and the column naming what held it read **the build itself**. The build
+loaded two scripts from two content networks and its typefaces from a
+third. The dependency entered 2026-09-28; the claim was written 2026-10-05;
+it was found 2026-10-07 by a grep run while asking an unrelated question —
+false on the day it was written. It is now held by a check that reads the
+origin rather than the verb, and the check found the typefaces on its first
+run. That is the Sentinel Principle's own sentence, observed where the
+principle is not installed: an increase in a claim's authority that crossed
+no independently governed boundary.
+
+**Owed, from this.** Nothing to that site, which has taken its own remedy.
+To this one: the README limit is sharpened and that is all. The dual's
+cheaper half already has a named remedy here — carry the hash and mtime of
+the thing at the other end of the pipe (§4). The other half has none.
+Asserting that an artefact is what it claims generally requires somebody to
+look at it, and both sites found their instance by looking.
